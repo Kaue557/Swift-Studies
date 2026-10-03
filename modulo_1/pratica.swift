@@ -1,4 +1,3 @@
-// Recebe valor
 var valor: Int = 34217
 var valor_inicial = valor
 
@@ -24,15 +23,6 @@ let quant2 = valor / 2
 valor = valor % 2
 
 let quant1 = valor
-
-// Calcular cédulas
-    // iniciar com valor
-    // utiliza o resto
-    // sempre utilzando o valor da cédula como divisor 
-    // salvar o resultado em variável
-
-//Devolver resposta (saída -> Valor: qtde)
-    // print
 
 print("""
 Valor = R$\(valor_inicial)

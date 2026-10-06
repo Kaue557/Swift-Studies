@@ -52,7 +52,7 @@ func mostrarInfos(numPedido: Int, pedidos: [[Double?]]) {
     print("""
     PEDIDO: \(numPedido)
     Total bruto: R$ \(String(format: "%.2f", valorB))
-    Valor descontado: R$ \(String(format: "%.2f", desc))
+    Valor descontado: R$ \(String(format: "%.2f", valorB - valorL))
     Total a pagar: R$ \(String(format: "%.2f", valorL))
     """)
 }

@@ -1,6 +1,10 @@
 import Foundation
 
-func criarConta(numConta: Int, titular: String, senha: String, saldoIncial: Double) -> Bool{
+// global para ser enxergado pelo while do repeat
+var opcao = 0
+var contas: [Int: String] = [:] // dicionario para  num de conta e titular
+
+func criarContaAux() -> Bool{
     print("Número da conta:\n> ")
     guard let numConta = readLine(),
           let numero = Int(numConta)
@@ -9,20 +13,39 @@ func criarConta(numConta: Int, titular: String, senha: String, saldoIncial: Doub
         return false
     }
     print("Titular:\n> ")
-    guard let titular = readLine(),
-          let nome = String(titular)
+    guard let titular = readLine()
     else {
         print("Nome do titular inválido!")
         return false
     }
-} 
-
-func entrar(numConta: Int, senha: String) -> Bool{
-
+    return true
 }
 
-// global para ser enxergado pelo while do repeat
-var opcao = 0
+func criarConta(numero: Int, titular: String, &contas) -> Bool{ // recebe as informações da função auxiliar
+    contas[numero] = titular
+}
+
+func entrar() -> Bool{
+    print("Número da conta:\n> ")
+    guard let numConta = readLine(),
+          let numero = Int(numConta)
+    else {
+        print("Número de conta inválido!")
+        return false
+    }
+    print("Senha: ")
+    guard let senha_titular = readLine(),
+          let senha = String(senha_titular)
+    else {
+        print("Senha invalida")
+        return false
+    }
+    return true
+}
+
+func depositar(){
+
+}
 
 repeat {
     print("""
@@ -50,7 +73,7 @@ repeat {
     switch opcao {
         case 1: print("Criação de Conta:\n")
             if criarConta(){
-                print("Conta cadastrada com successo!")
+                print("Conta cadastrada com sucesso!")
             } else {
                 print("Não foi possível criar a conta...")
                 break
@@ -60,7 +83,6 @@ repeat {
                 print("Entrada validada com sucesso!")
             } else {
                 print("Não foi possível entrar. Revise suas credenciais!")
-                break
             }
         default: print("Saindo...")
     }

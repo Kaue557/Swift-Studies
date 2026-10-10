@@ -2,27 +2,35 @@ import Foundation
 
 // global para ser enxergado pelo while do repeat
 var opcao = 0
-var contas: [Int: String] = [:] // dicionario para  num de conta e titular
+var contas: [Int: String] = [:] // dicionario para num de conta e titular
 
-func criarContaAux() -> Bool{
-    print("Número da conta:\n> ")
+func criarContaAux() -> (Int, String)?{ // devolve uma tupla, se for nil deu "entrada inválida"
+    print("Número da conta: ")
+    print("> ", terminator: "")
     guard let numConta = readLine(),
           let numero = Int(numConta)
     else {
         print("Número de conta inválido!")
-        return false
+        return nil
     }
-    print("Titular:\n> ")
-    guard let titular = readLine()
+    print("Titular: ")
+    print("> ", terminator: "")
+    guard let titular = readLine(),
+          !titular.isEmpty // se titular estiver vazio
     else {
         print("Nome do titular inválido!")
-        return false
+        return nil
     }
-    return true
+    return (numero, titular)
 }
 
-func criarConta(numero: Int, titular: String, &contas) -> Bool{ // recebe as informações da função auxiliar
-    contas[numero] = titular
+func criarConta(numero: Int, titular: String, contas: inout [Int: String]) -> Bool{ // recebe as informações da função auxiliar
+    if contas[numero] == nil{
+       contas[numero] = titular
+       return true
+    }else{
+       return false
+    }
 }
 
 func entrar() -> Bool{
@@ -34,8 +42,7 @@ func entrar() -> Bool{
         return false
     }
     print("Senha: ")
-    guard let senha_titular = readLine(),
-          let senha = String(senha_titular)
+    guard let senha_titular = readLine()
     else {
         print("Senha invalida")
         return false
@@ -61,7 +68,7 @@ repeat {
 
     // confere as três condições, se qualquer uma falhar, vai pro else e volta pra leitura
     guard let entrada = readLine(),
-          let numero = Int(entrada),
+          let escolha = Int(entrada),
           (1...3).contains(numero)
     else {
         print("Entrada inválida! Digite 1, 2 ou 3.\n")
@@ -71,19 +78,21 @@ repeat {
     opcao = numero
 
     switch opcao {
-        case 1: print("Criação de Conta:\n")
-            if criarConta(){
-                print("Conta cadastrada com sucesso!")
-            } else {
-                print("Não foi possível criar a conta...")
-                break
+        case 1:
+            print("Criação de Conta:\n")
+            if let (numero, titular) = criarContaAux(){ // desembrulhando
+                if criarConta(numero: numero, titular: titular, contas: &contas){ // recebido da função aux
+                    print("Conta cadastrada com sucesso!") // apenas print por enquanto
+                }else{
+                    print("Não foi possível criar a conta...")
+                }
             }
-        case 2: print("Entrada:\n")
-            if entrar(){
-                print("Entrada validada com sucesso!")
-            } else {
-                print("Não foi possível entrar. Revise suas credenciais!")
-            }
+
+        case 2:
+            print("Entrada:\n")
+            
+
         default: print("Saindo...")
     }
+
 } while opcao != 3

@@ -16,6 +16,7 @@ var contas: [Int: Conta] = [
     0: Conta(numero: 0, titular: "Admin", senha: "admin", saldo: 0, ehAdmin: true)
 ]
 
+//----------------------------------------------------------------------------------
 // CRIAR CONTA ========================
 func criarContaAux() -> (Int, String, String, Double)?{ // devolve uma tupla, se for nil deu "entrada inválida"
     print("Número da conta: ")
@@ -45,7 +46,7 @@ func criarContaAux() -> (Int, String, String, Double)?{ // devolve uma tupla, se
         return nil
     }
 
-    print("Saldo inical: ")
+    print("Saldo inicial: ")
     print("> ", terminator: "")
     guard let textoSaldo = readLine(),
           let saldo = Double(textoSaldo),
@@ -83,8 +84,7 @@ func entrarAux() -> (Int, String)?{
 
     print("Senha: ")
     print("> ", terminator: "")
-    guard let senha_titular = readLine(),
-          !senha.isEmpty
+    guard let senha_titular = readLine()
     else {
         print("Senha invalida!")
         return nil
@@ -105,10 +105,142 @@ func entrar(numero: Int, senha: String, contas: [Int: Conta]) -> Conta?{
     return conta
 }
 
-func depositar(){
+// MENU DO USUÁRIO COMUM (esqueleto, para ser construído) =========================
+func menuComun(numeroLogado: Int, contas: inout [Int: Conta]){
+    print("| O que deseja fazer hoje? |\n")
 
+    var escolhaMenu = 0
+
+    repeat{
+        print("1. Consultar Dados\n2. Depositar\n3. Transferir\n4. Sair")
+        print("> ", terminator: "")
+
+        guard let entrada = readLine(),
+              let escolha = Int(entrada),
+              (1...4).contains(escolha)
+        else {
+            print("Entrada inválida! Escolha um número de 1 a 4.\n")
+            continue
+        }
+
+        escolhaMenu = escolha
+
+        switch escolha{
+            case 1: print("em construção\n")
+            case 2: print("em construção\n")
+            case 3: print("em construção\n")
+            default: print("Saindo da conta...\n")
+        }
+
+    } while escolhaMenu != 4
 }
 
+// MENU DO ADMIN =========================
+// só conversa com o usuário; as regras ficam em listarContas e removerConta
+func menuAdmin(numeroLogado: Int, contas: inout [Int: Conta]){
+    print("| O que deseja fazer hoje? |\n")
+
+    // declarada FORA do repeat para o while enxergar
+    var escolhaMenu = 0
+
+    repeat{
+        print("1. Listar Contas\n2. Remover Conta\n3. Sair")
+        print("> ", terminator: "")
+
+        guard let entrada = readLine(),
+              let escolha = Int(entrada),
+              (1...3).contains(escolha)
+        else {
+            print("Entrada inválida! Escolha um número de 1 a 3.\n")
+            continue
+        }
+
+        escolhaMenu = escolha
+
+        switch escolha{
+            case 1:
+                // a lógica devolve o array; o menu é quem imprime
+                let lista = listarContas(contas: contas)
+                if lista.isEmpty{
+                    print("Nenhuma conta cadastrada.\n")
+                }else{
+                    print("\n--- CONTAS CADASTRADAS ---")
+                    for conta in lista{
+                        // imprime só nome, número e saldo (nunca a senha)
+                        print("Conta \(conta.numero) | \(conta.titular) | R$ \(String(format: "%.2f", conta.saldo))")
+                    }
+                    print("")
+                }
+
+            case 2:
+                // 1º: auxiliar lê o número da conta alvo (nil = entrada inválida)
+                if let alvo = removerAux(){
+                    // 2º: a lógica recebe o alvo E quem está logado
+                    if removerConta(numero: alvo, logado: numeroLogado, contas: &contas){
+                        print("Conta \(alvo) removida com sucesso!\n")
+                    }else{
+                        print("Conta não existe ou é do administrador!\n")
+                    }
+                }
+
+            default: print("Saindo da conta...\n")
+        }
+
+    } while escolhaMenu != 3
+}
+
+// FUNÇÕES DE LÓGICA =========================
+func verDados(numero: Int, contas: [Int: Conta]) -> Conta?{ return contas[numero] }
+
+func depositar(numero: Int, valor: Double, contas: inout [Int: Conta]) -> Bool{
+    return false // a construir
+}
+
+func transferir(origem: Int, destino: Int, valor: Double, contas: inout [Int: Conta]) -> Bool{
+    return false // a construir
+}
+
+func alterarSenha(numero: Int, senhaAtual: String, novaSenha: String, contas: inout [Int: Conta]) -> Bool{
+    return false // a construir
+}
+
+// apenas lógica: devolve as contas comuns (sem o admin) ordenadas pelo número
+func listarContas(contas: [Int: Conta]) -> [Conta]{
+    // .values pega só as contas (sem as chaves)
+    // filter descarta o admin; sorted organiza, pois dicionário não tem ordem
+    return contas.values
+        .filter { !$0.ehAdmin }
+        .sorted { $0.numero < $1.numero }
+}
+
+// só LÊ do teclado: pergunta qual conta remover (nil = entrada inválida)
+func removerAux() -> Int?{
+    print("Número da conta a remover: ")
+    print("> ", terminator: "")
+    guard let texto = readLine(),
+          let numero = Int(texto)
+    else {
+        print("Número de conta inválido!")
+        return nil
+    }
+    return numero
+}
+
+// apenas lógica: remove a conta, se puder
+// numero = conta alvo; logado = admin que está removendo
+func removerConta(numero: Int, logado: Int, contas: inout [Int: Conta]) -> Bool{
+    // só continua se: não é a própria conta logada, a conta existe e não é admin
+    guard numero != logado,
+          let conta = contas[numero],
+          !conta.ehAdmin
+    else {
+        return false
+    }
+    contas.removeValue(forKey: numero) // apaga a chave do dicionário
+    return true
+}
+
+//----------------------------------------------------------------------------------
 repeat {
     print("""
     ================
@@ -144,22 +276,21 @@ repeat {
             }
 
         case 2:
-            print("Entr:\n")
-            if let (numero, senha) == entrarAux(){ // leitura passou
+            print("Entrar:\n")
+            if let (numero, senha) = entrarAux(){ // leitura passou
                 if let contaLogada = entrar(numero: numero, senha: senha, contas: contas){
                     // autenticado: o ehAdmin decide qual menu abrir
                     if contaLogada.ehAdmin{
                         print("Bem-vindo, administrador!")
-                        // menuAdmin(...) a ser construído
+                        menuAdmin(numeroLogado: contaLogada.numero, contas: &contas)
                     }else{
                         print("Bem-vindo, \(contaLogada.titular)!")
-                        // menuComum(...) a ser construído
+                        menuComun(numeroLogado: contaLogada.numero, contas: &contas)
                     }
                 }else{
                     print("Número da conta ou senha incorretos!")
                 }
             }
-            
 
         default: print("Saindo...")
     }

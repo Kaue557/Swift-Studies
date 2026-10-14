@@ -126,9 +126,21 @@ func menuComun(numeroLogado: Int, contas: inout [Int: Conta]){
         escolhaMenu = escolha
 
         switch escolha{
-            case 1: print("em construção\n")
-            case 2: print("em construção\n")
-            case 3: print("em construção\n")
+            case 1:
+                if let conta = verDados(numero: numeroLogado, contas: contas){
+                    print("\nTitular: \(conta.titular)")
+                    print("Conta: \(conta.numero)")
+                    print("Saldo: R$ \(String(format: "%.2f", conta.saldo))\n")
+                }else{
+                    print("Não foi possível carregar os dados da conta.\n")
+                }
+                
+            case 2:
+                print("em construção\n")
+            
+            case 3:
+                print("em construção\n")
+
             default: print("Saindo da conta...\n")
         }
 
@@ -173,9 +185,9 @@ func menuAdmin(numeroLogado: Int, contas: inout [Int: Conta]){
                 }
 
             case 2:
-                // 1º: auxiliar lê o número da conta alvo (nil = entrada inválida)
+                // 1. auxiliar lê o número da conta alvo (nil = entrada inválida)
                 if let alvo = removerAux(){
-                    // 2º: a lógica recebe o alvo E quem está logado
+                    // 2. a lógica recebe o alvo E quem está logado
                     if removerConta(numero: alvo, logado: numeroLogado, contas: &contas){
                         print("Conta \(alvo) removida com sucesso!\n")
                     }else{
@@ -192,8 +204,31 @@ func menuAdmin(numeroLogado: Int, contas: inout [Int: Conta]){
 // FUNÇÕES DE LÓGICA =========================
 func verDados(numero: Int, contas: [Int: Conta]) -> Conta?{ return contas[numero] }
 
+func depositarAux() -> Double?{ // também pode ser usada como auxiliar da função transferir(?)
+    print("Qual valor deseja depositar/transferir?")
+    print("> ", terminator: "")
+
+    guard let numero = readLine(),
+          let valor = Double(numero),
+          !valor <= 0
+    else{
+        print("Valor inválido! Ex.: 100.00")
+        return nil
+    }
+    return valor
+}
+
 func depositar(numero: Int, valor: Double, contas: inout [Int: Conta]) -> Bool{
-    return false // a construir
+    guard contas[numero] != nil
+    else{
+        return false
+    }
+    
+    if var conta = contas[numero]{
+        contas[numero]?.saldo += valor
+        return true
+    }
+
 }
 
 func transferir(origem: Int, destino: Int, valor: Double, contas: inout [Int: Conta]) -> Bool{
@@ -217,6 +252,7 @@ func listarContas(contas: [Int: Conta]) -> [Conta]{
 func removerAux() -> Int?{
     print("Número da conta a remover: ")
     print("> ", terminator: "")
+
     guard let texto = readLine(),
           let numero = Int(texto)
     else {

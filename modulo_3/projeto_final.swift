@@ -112,14 +112,14 @@ func menuComun(numeroLogado: Int, contas: inout [Int: Conta]){
     var escolhaMenu = 0
 
     repeat{
-        print("1. Consultar Dados\n2. Depositar\n3. Transferir\n4. Sair")
+        print("1. Consultar Dados\n2. Depositar\n3. Transferir\n4. Alterar Senha\n 5. Sair")
         print("> ", terminator: "")
 
         guard let entrada = readLine(),
               let escolha = Int(entrada),
-              (1...4).contains(escolha)
+              (1...5).contains(escolha)
         else {
-            print("Entrada inválida! Escolha um número de 1 a 4.\n")
+            print("Entrada inválida! Escolha um número de 1 a 5.\n")
             continue
         }
 
@@ -136,15 +136,38 @@ func menuComun(numeroLogado: Int, contas: inout [Int: Conta]){
                 }
                 
             case 2:
-                print("em construção\n")
+                if let valor = lerValor(pergunta: "Quanto deseja depositar?"){
+                    if depositar(numero: numeroLogado, valor: valor, contas: &contas){
+                        print("Depósito realizado!\n")
+                    }else{
+                        print("Valor deve ser maior que zero.\n")
+                    }
+                }
             
             case 3:
-                print("em construção\n")
+                if let destino = lerInt(pergunta: "Conta de destino:"),
+                let valor = lerValor(pergunta: "Quanto deseja transferir?"){
+                    if transferir(origem: numeroLogado, destino: destino, valor: valor, contas: &contas){
+                        print("Transferência realizada!\n")
+                    }else{
+                        print("Falhou: confira destino, valor e saldo.\n")
+                    }
+                }
+
+            case 4:
+                if let atual = lerTexto(pergunta: "Senha atual:"),
+                let nova = lerTexto(pergunta: "Nova senha:"){
+                    if alterarSenha(numero: numeroLogado, senhaAtual: atual, novaSenha: nova, contas: &contas){
+                        print("Senha alterada!\n")
+                    }else{
+                        print("Senha atual incorreta ou nova senha vazia.\n")
+                    }
+                }
 
             default: print("Saindo da conta...\n")
         }
 
-    } while escolhaMenu != 4
+    } while escolhaMenu != 5
 }
 
 // MENU DO ADMIN =========================
@@ -204,13 +227,12 @@ func menuAdmin(numeroLogado: Int, contas: inout [Int: Conta]){
 // FUNÇÕES DE LÓGICA =========================
 func verDados(numero: Int, contas: [Int: Conta]) -> Conta?{ return contas[numero] }
 
-func depositarAux() -> Double?{ // também pode ser usada como auxiliar da função transferir(?)
-    print("Qual valor deseja depositar/transferir?")
+func lerValor(pergunta: String) -> Double?{ // func usada tanto para depositar quanto transferir
+    print(pergunta)
     print("> ", terminator: "")
 
-    guard let numero = readLine(),
-          let valor = Double(numero),
-          !valor <= 0
+    guard let texto = readLine(),
+          let valor = Double(texto)
     else{
         print("Valor inválido! Ex.: 100.00")
         return nil
@@ -219,24 +241,64 @@ func depositarAux() -> Double?{ // também pode ser usada como auxiliar da funç
 }
 
 func depositar(numero: Int, valor: Double, contas: inout [Int: Conta]) -> Bool{
-    guard contas[numero] != nil
+    guard valor > 0,
+          contas[numero] != nil
     else{
         return false
     }
     
-    if var conta = contas[numero]{
-        contas[numero]?.saldo += valor
-        return true
+    //“se existir uma conta nessa chave, altere o saldo dela”
+    contas[numero]?.saldo += valor // altera direto no dicionário
+    return true
+}
+
+// lê um número inteiro (ex.: conta de destino); nil = inválido
+func lerInt(pergunta: String) -> Int?{
+    print(pergunta)
+    print("> ", terminator: "")
+
+    guard let texto = readLine(),
+          let numero = Int(texto)
+    else{
+        print("Número inválido!")
+        return nil
     }
-
+    return numero
 }
 
+// lê um texto (ex.: senhas); nil = leitura falhou
+func lerTexto(pergunta: String) -> String?{
+    print(pergunta)
+    print("> ", terminator: "")
+    return readLine()
+}
+
+// apenas lógica: todas as checagens vêm antes de mexer em qualquer saldo
 func transferir(origem: Int, destino: Int, valor: Double, contas: inout [Int: Conta]) -> Bool{
-    return false // a construir
+    guard valor > 0,                              // valor positivo
+          origem != destino,                      // não transfere para si mesmo
+          let contaOrigem = contas[origem],       // origem existe
+          let contaDestino = contas[destino],     // destino existe
+          !contaDestino.ehAdmin,                  // admin não recebe transferência
+          contaOrigem.saldo >= valor              // saldo suficiente
+    else{
+        return false
+    }
+    contas[origem]?.saldo -= valor   // debita
+    contas[destino]?.saldo += valor  // credita
+    return true
 }
 
+// apenas lógica: confere a senha atual antes de trocar
 func alterarSenha(numero: Int, senhaAtual: String, novaSenha: String, contas: inout [Int: Conta]) -> Bool{
-    return false // a construir
+    guard let conta = contas[numero],       // conta existe
+          conta.senha == senhaAtual,        // autenticação: senha atual correta
+          !novaSenha.isEmpty                // nova senha não pode ser vazia
+    else{
+        return false
+    }
+    contas[numero]?.senha = novaSenha
+    return true
 }
 
 // apenas lógica: devolve as contas comuns (sem o admin) ordenadas pelo número
